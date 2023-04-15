@@ -1,0 +1,42 @@
+version: '3.9'
+
+volumes:
+  postgres:
+
+services:
+  crackwatch:
+    tty: true
+    restart: always
+    build:
+      context: .
+    image: crack/watch:1.0
+    container_name: crackwatch
+    networks:
+      - compose-bridge   
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    command: >
+      sh -c "python3 manage.py makemigrations &&
+             python3 manage.py migrate &&
+             python3 manage.py runserver 0.0.0.0:8080"  
+
+  postgres:
+    image: postgres
+    container_name: postgrescrackwatch
+    networks:
+      - compose-bridge
+    environment:
+      MYSQL_USER: "content_api"
+      MYSQL_DATABASE: "content_api"
+      MYSQL_PASSWORD: "content_api"
+      MYSQL_ROOT_PASSWORD: "root"
+    ports: 
+    - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+networks:
+  compose-bridge:
+    driver: bridge
